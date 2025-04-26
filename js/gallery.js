@@ -70,23 +70,17 @@ const refs = {
   itemList: document.querySelector('.gallery'),
 };
 
+let instance;
 
-// refs.itemList.addEventListener('click', e => {
-//   const imageElem = e.taeget.closest('.gallery-item')
-//   if (!imageElem) return;
-//   const joma = imageElem.dataset.jopa;
-//   console.log(joma);
-  
-// })
 
 function imageTemplate(image) {
   return `<li class="gallery-item">
-        <a class="gallery-link" href=${image.original}>
+        <a class="gallery-link" href="${image.original}">
           <img
             class="gallery-image"
-            src=${image.preview}
-            data-source=${image.original}
-            alt=${image.description}
+            src="${image.preview}"
+            data-source="${image.original}"
+            alt="${image.description}"
           />
         </a>
       </li>`;
@@ -96,24 +90,45 @@ function imagesTemplate(images) {
   return images.map(imageTemplate).join('\n');
 }
 
+
 function renderImages() {
   const markup = imagesTemplate(images);
   refs.itemList.innerHTML = markup;
 }
 
+
 renderImages();
 
 
+function closeModal() {
+  instance.close();
+}
 
 
-const gallery = document.querySelector('.gallery');
+function handleCloseModal(e) {
+  if (e.code === 'Escape') {
+    closeModal();
+  }
+}
 
-gallery.addEventListener('click', (event) => {
+
+refs.itemList.addEventListener('click', (event) => {
   event.preventDefault(); 
 
-  const link = event.target.closest('a');
-  if (!link) return;
+  const imgEl = event.target;
+  if (imgEl.nodeName !== 'IMG') return; 
 
-  const imageSrc = link.getAttribute('href');
-  console.log('Зображення за посиланням:', imageSrc);
+  const originalSrc = imgEl.dataset.source;
+  const altText = imgEl.alt;
+
+  instance = basicLightbox.create(`
+    <div class="modal">
+      <img src="${originalSrc}" alt="${altText}" />
+    </div>
+  `, {
+    onShow: () => window.addEventListener('keydown', handleCloseModal),
+    onClose: () => window.removeEventListener('keydown', handleCloseModal),
+  });
+
+  instance.show();
 });
